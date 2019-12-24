@@ -2,6 +2,18 @@
  
 #include"usart.h"
 /*******************************************************************  
+struct termio
+{   unsigned short  c_iflag;        // 输入模式标志     
+    unsigned short  c_oflag;        // 输出模式标志 
+    unsigned short  c_cflag;        // 控制模式标志
+    unsigned short  c_lflag;        // local mode flags  
+    unsigned char   c_line;         // line discipline   
+    unsigned char   c_cc[NCC];      // control characters 
+};
+
+*******************************************************************/    
+
+/*******************************************************************  
 
 
 tcgetattr      取属性(termios结构)
