@@ -23,3 +23,5 @@ set(ALL_SRCS ${BASE_SRC} )
 #ADD_LIBRARY(ObCamera SHARED ${ALL_SRCS})
 # 指定生成目标
 add_executable(usart ${ALL_SRCS})
+
+target_link_libraries(usart pthread)

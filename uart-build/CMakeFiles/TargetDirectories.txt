@@ -1,0 +1,3 @@
+/home/jamming/code/linux_demo/uart-build/CMakeFiles/edit_cache.dir
+/home/jamming/code/linux_demo/uart-build/CMakeFiles/rebuild_cache.dir
+/home/jamming/code/linux_demo/uart-build/CMakeFiles/usart.dir

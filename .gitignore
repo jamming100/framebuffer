@@ -12,3 +12,6 @@ dbg
 /build
 
 build/
+
+framebuffer-build/
+uart-build/
