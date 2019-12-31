@@ -6,7 +6,7 @@ message(STATUS "CMAKE_SOURCE_DIR = " ${CMAKE_SOURCE_DIR})
 message(STATUS "******************************************************************")
 
 # 项目信息
-project (usart)
+project (uart)
 #toolchain-wrapper
 #set(CMAKE_C_COMPILER "${CMAKE_SOURCE_DIR}/../../buildroot/output/rockchip_rk3399/host/usr/bin/aarch64-buildroot-linux-gnu-cc.br_real") 
 #set(CMAKE_CXX_COMPILER "${CMAKE_SOURCE_DIR}/../../linux/buildroot/output/rockchip_rk3399/host/usr/bin/aarch64-buildroot-linux-gnu-g++.br_real")
@@ -22,6 +22,6 @@ set(ALL_SRCS ${BASE_SRC} )
 # //生成动态库
 #ADD_LIBRARY(ObCamera SHARED ${ALL_SRCS})
 # 指定生成目标
-add_executable(usart ${ALL_SRCS})
+add_executable(uart ${ALL_SRCS})
 
-target_link_libraries(usart pthread)
+target_link_libraries(uart pthread)

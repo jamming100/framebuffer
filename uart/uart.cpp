@@ -1,6 +1,6 @@
 
  
-#include"usart.h"
+#include"uart.h"
 /*******************************************************************  
 struct termio
 {   unsigned short  c_iflag;        // 输入模式标志     
@@ -22,9 +22,9 @@ cfgetispeed    得到输入速度
 cfgetospeed    得到输出速度
 cfsetispeed    设置输入速度
 cfsetospeed    设置输出速度
-tcdrain        等待所有输出都被传输
-tcflow         挂起传输或接收
-tcflush        刷清未决输入和/或输出
+tcdrain        等待所有输出都被传输
+tcflow         挂起传输或接收
+tcflush        刷清未决输入和/或输出
 tcsendbreak    送BREAK字符
 tcgetpgrp      得到前台进程组ID
 tcsetpgrp      设置前台进程组ID
