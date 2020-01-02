@@ -23,15 +23,22 @@ Mutex mutex = Mutex();
 char readBUf[256];
 char writeBuf[256];
 
+#define STATUS_START 1
+#define STATUS_STOP 2
+#define STATUS_EXIT 3
+int status = 0;
+
 void onProcessMsg(string msg){
 
     cout << "onProcessMsg : " << msg << endl;
 
     //process msg
     if(msg.compare("start") == 0){
-
+        status = STATUS_START;
     }else if(msg.compare("stop") == 0){
-
+        status = STATUS_STOP;
+    }else if(msg.compare("exit") == 0){
+        status = STATUS_EXIT;
     }
 }
 
@@ -47,36 +54,46 @@ void* readUartThread(void * pArg){
 
     while (1) //循环读取数据
     {
-        mutex.TryLock();
-        len = UART0_Recv(fd, readBUf,sizeof(readBUf));
-        if(len > 0)
-        {
-            readBUf[len] = '\0';
-            printf("receive data is %s\n",readBUf);
-            str.append(readBUf);
-            cout << str << endl;
+        int ret = mutex.TryLock();
+        if(ret == 0){
 
-            int startIndex = str.find_first_of('$');
-            int endIndex = str.find_first_of('*');
-            if(startIndex >= 0){
-                string sub = str.substr(startIndex,(endIndex - startIndex));
+            len = UART0_Recv(fd, readBUf,sizeof(readBUf));
+            if(len > 0)
+            {
+                readBUf[len] = '\0';
+                printf("receive data is %s\n",readBUf);
+                str.append(readBUf);
 
-                cout << sub << endl;
-                str = str.substr(endIndex,str.length() - endIndex);
-                cout << str << endl;
+
+                cout << "start parse:" <<str << endl;
+
+                int startIndex = str.find_first_of('$');
+                int endIndex = str.find_first_of('*');
+                if(startIndex >= 0){
+                    string sub = str.substr(startIndex + 1,(endIndex - startIndex) - 1);
+
+                    cout << "parse msg :"<< sub << endl;
+                    str = str.substr(endIndex + 1,str.length() - endIndex);
+                    cout << "after parse:" << str << endl;
+                    onProcessMsg(sub);
+                }
             }
-        }
-        else
-        {
-            printf("cannot receive data\n");
+            else
+            {
+                printf("cannot receive data\n");
+            }
+            mutex.Unlock();
         }
 
-        mutex.Unlock();
+
+        if(status == STATUS_EXIT){
+            break;
+        }
         sleep(1);
     }
 }
 
-void crreateReadThread(){
+void createReadThread(){
     pthread_create(&g_ReadThread, NULL, readUartThread, (void *)0);
 }
 
@@ -97,46 +114,50 @@ int main(int argc, char **argv)
 
 //    if(argc != 3)
 //    {
-//        printf("Usage: %s /dev/ttySn 1(send data)/1 (receive data) \n",argv[0]);
+//        write: ./uart /dev/pts/9 0    ;  read: ./uart /dev/pts/9 1
+//        printf("Usage: %s /dev/ttySn 0(send data)\1(receive data) \n",argv[0]);
 //        printf("open failure : %s\n", strerror(errno));
     
 //        return FALSE;
 //    }
 
-    //fd = UART0_Open(fd,argv[1]); //打开串口，返回文件描述符
+    // socat  -d  -d  PTY  PTY 创建虚拟串口: /dev/pts/9 dev/pts/10
+    fd = UART0_Open(fd,argv[1]); //打开串口，返回文件描述符
 
-    fd = UART0_Open(fd, "/dev/ttyUSB0"); //打开串口，返回文件描述符
+   // fd = UART0_Open(fd, "/dev/ttyUSB0"); //打开串口，返回文件描述符
 
     printf("fd= \n",fd);
 
     do{
-        err = UART0_Init(fd,115200,0,8,1,'N');    
+        err = UART0_Init(fd,9600,0,8,1,'N');  //115200
         printf("Set Port Exactly!\n"); 
         sleep(1);
     }while(FALSE == err || FALSE == fd);    
 
-    crreateReadThread();
+    createReadThread();
 
     if(0 == strcmp(argv[2],"0"))    //开发板向pc发送数据的模式
     {   
-        fgets(writeBuf,256,stdin);   //输入内容，最大不超过40字节，fgets能吸收回车符，这样pc收到的数据就能自动换行
-        for(i = 0;i < 10;i++)    
+
+        for(i = 0;i < 10;i++)
         {
+            fgets(writeBuf,256,stdin);   //输入内容，最大不超过40字节，fgets能吸收回车符，这样pc收到的数据就能自动换行
             mutex.TryLock();
 
             len = UART0_Send(fd,writeBuf,40);
             if(len > 0)
-                printf(" %d time send %d data successful\n",i,len);    
+                printf(" %d time send %d data successful\n",i,len);
             else
-                printf("send data failed!\n");    
+                printf("send data failed!\n");
 
            mutex.Unlock();
            sleep(1);
         }
+        status = STATUS_EXIT;
     }
 
-    UART0_Close(fd);
 
     waitReadThreadExit();
+    UART0_Close(fd);
 }
 
