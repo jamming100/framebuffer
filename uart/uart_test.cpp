@@ -32,13 +32,19 @@ void onProcessMsg(string msg){
 
     cout << "onProcessMsg : " << msg << endl;
 
+    int len = 0;
     //process msg
-    if(msg.compare("start") == 0){
+    if(msg.compare("list") == 0){
+        len = UART0_Send(fd,"device1 device2 device3",strlen("device1 device2 device3"));
+    }else if(msg.compare("start") == 0){
         status = STATUS_START;
+        len = UART0_Send(fd,"started",strlen("started"));
     }else if(msg.compare("stop") == 0){
         status = STATUS_STOP;
+        len = UART0_Send(fd,"stopped",strlen("stopped"));
     }else if(msg.compare("exit") == 0){
         status = STATUS_EXIT;
+        len = UART0_Send(fd,"exited",strlen("exited"));
     }
 }
 
@@ -65,22 +71,30 @@ void* readUartThread(void * pArg){
                 str.append(readBUf);
 
 
-                cout << "start parse:" <<str << endl;
+                cout << "start parse:" << str << endl;
 
+                startParse:
                 int startIndex = str.find_first_of('$');
                 int endIndex = str.find_first_of('*');
-                if(startIndex >= 0){
-                    string sub = str.substr(startIndex + 1,(endIndex - startIndex) - 1);
-
-                    cout << "parse msg :"<< sub << endl;
-                    str = str.substr(endIndex + 1,str.length() - endIndex);
-                    cout << "after parse:" << str << endl;
-                    onProcessMsg(sub);
+                if(startIndex >= 0 ){
+                    if(endIndex > startIndex){
+                        string sub = str.substr(startIndex + 1,(endIndex - startIndex) - 1);
+                        cout << "parse msg :"<< sub << endl;
+                        str = str.substr(endIndex + 1,str.length() - endIndex);
+                        onProcessMsg(sub);
+                    }else{
+                       str = str.substr(startIndex, str.length() - startIndex);
+                       goto startParse;
+                    }
+                }else{
+                    str.clear();
                 }
+
+                cout << "after parse:" << str << endl;
             }
             else
             {
-                printf("cannot receive data\n");
+                //printf("cannot receive data\n");
             }
             mutex.Unlock();
         }
@@ -138,9 +152,12 @@ int main(int argc, char **argv)
 
     if(0 == strcmp(argv[2],"0"))    //开发板向pc发送数据的模式
     {   
-
+        mutex.TryLock();
+        len = UART0_Send(fd,"$list*",strlen("$list*"));
+        mutex.Unlock();
         for(i = 0;i < 10;i++)
         {
+
             fgets(writeBuf,256,stdin);   //输入内容，最大不超过40字节，fgets能吸收回车符，这样pc收到的数据就能自动换行
             mutex.TryLock();
 
