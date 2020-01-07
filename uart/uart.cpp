@@ -34,13 +34,13 @@ tcsetpgrp      设置前台进程组ID
 
 
 /*******************************************************************  
-*名称：             UART0_Open  
+*名称：             UART_Open
 *功能：             打开串口并返回串口设备文件描述  
 *入口参数：         fd      文件描述符
                     port    串口号(ttyS0,ttyS1,ttyS2)  
 *出口参数：正确返回为1，错误返回为0  
 *******************************************************************/    
-int UART0_Open(int fd,char*port)
+int UART_Open(int fd,char*port)
 {    
     fd = open( port, O_RDWR|O_NOCTTY|O_NDELAY);    
     if (fd<0)    
@@ -72,20 +72,20 @@ int UART0_Open(int fd,char*port)
     return fd;    
 }    
 /*******************************************************************  
-*名称：             UART0_Close  
+*名称：             UART_Close
 *功能：             关闭串口并返回串口设备文件描述  
 *入口参数：         fd          文件描述符   
                     port        串口号(ttyS0,ttyS1,ttyS2)  
 *出口参数：void  
 *******************************************************************/    
      
-void UART0_Close(int fd)    
+void UART_Close(int fd)
 {    
     close(fd);    
 }    
      
 /*******************************************************************  
-*名称：             UART0_Set  
+*名称：             UART_Set
 *功能：             设置串口数据位，停止位和效验位  
 *入口参数：         fd          串口文件描述符
 *                   speed       串口速度  
@@ -95,7 +95,7 @@ void UART0_Close(int fd)
 *                   parity      效验类型 取值为N,E,O,,S  
 *出口参数：正确返回为1，错误返回为0  
 *******************************************************************/    
-int UART0_Set(int fd,int speed,int flow_ctrl,int databits,int stopbits,int parity)    
+int UART_Set(int fd,int speed,int flow_ctrl,int databits,int stopbits,int parity)
 {    
        
     int   i;    
@@ -226,7 +226,7 @@ int UART0_Set(int fd,int speed,int flow_ctrl,int databits,int stopbits,int parit
     return (TRUE);     
 }    
 /*******************************************************************  
-*名称：                UART0_Init()  
+*名称：                UART_Init()
 *功能：                串口初始化  
 *入口参数：            fd         文件描述符    
 *                      speed      串口速度  
@@ -237,11 +237,11 @@ int UART0_Set(int fd,int speed,int flow_ctrl,int databits,int stopbits,int parit
 *                        
 *出口参数：正确返回为1，错误返回为0  
 *******************************************************************/    
-int UART0_Init(int fd, int speed,int flow_ctrl,int databits,int stopbits,int parity)    
+int UART_Init(int fd, int speed,int flow_ctrl,int databits,int stopbits,int parity)
 {    
     int err;    
     //设置串口数据帧格式    
-    if (UART0_Set(fd,115200,0,8,1,'N') == FALSE)    
+    if (UART_Set(fd,115200,0,8,1,'N') == FALSE)
     {                                                             
         return FALSE;    
     }    
@@ -252,14 +252,14 @@ int UART0_Init(int fd, int speed,int flow_ctrl,int databits,int stopbits,int par
 }    
      
 /*******************************************************************  
-* 名称：            UART0_Recv  
+* 名称：            UART_Recv
 * 功能：            接收串口数据  
 * 入口参数：        fd         文件描述符      
 *                   rcv_buf    接收串口中数据存入rcv_buf缓冲区中  
 *                   data_len   一帧数据的长度  
 * 出口参数：        正确返回为1，错误返回为0  
 *******************************************************************/    
-int UART0_Recv(int fd, char *rcv_buf,int data_len, int timeout)
+int UART_Recv(int fd, char *rcv_buf,int data_len, int timeout)
 {    
     int len,fs_sel;    
     fd_set fs_read;    
@@ -287,14 +287,14 @@ int UART0_Recv(int fd, char *rcv_buf,int data_len, int timeout)
 }
 
 /********************************************************************  
-* 名称：            UART0_Send  
+* 名称：            UART_Send
 * 功能：            发送数据  
 * 入口参数：        fd           文件描述符      
 *                   send_buf     存放串口发送数据  
 *                   data_len     一帧数据的个数  
 * 出口参数：        正确返回为1，错误返回为0  
 *******************************************************************/    
-int UART0_Send(int fd, char *send_buf,int data_len)    
+int UART_Send(int fd, char *send_buf,int data_len)
 {    
     int len = 0;    
        
