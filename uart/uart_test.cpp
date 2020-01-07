@@ -66,7 +66,7 @@ void onProcessMsg(std::vector<std::string>& msg){
 
 
     if(control.compare("list") == 0){
-        len = UART_Send(fd,"[list device1 device2 device3]",strlen("[device1 device2 device3]"));
+        len = UART_Send(fd,"[list device1 device2 device3]",strlen("[list device1 device2 device3]"));
     }else if(control.compare("start") == 0){
         status = STATUS_START;
         len = UART_Send(fd,"[start ok]",strlen("[start ok]"));
@@ -157,8 +157,8 @@ startParse: len = UART_Recv(fd, readBUf,sizeof(readBUf));
                 int startIndex = -1;
                 int endIndex = -1;
                 if(isServer){
-                    startIndex = str.find_first_of('$');
-                    endIndex = str.find_first_of('*');
+                    startIndex = str.find_first_of('{');
+                    endIndex = str.find_first_of('}');
                 }else{
                     startIndex = str.find_first_of('[');
                     endIndex = str.find_first_of(']');
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
     {   
         isServer = FALSE;
         mutex.TryLock();
-        len = UART_Send(fd,"$list*",strlen("$list*"));
+        len = UART_Send(fd,"{list}",strlen("{list}"));
         mutex.Unlock();
         for(i = 0;i < 10;i++)
         {
