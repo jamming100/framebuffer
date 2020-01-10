@@ -30,6 +30,7 @@ char writeBuf[256];
 int status = 0;
 
 bool isServer = TRUE;
+int heartCount = 0;
 
 int splitString(const char*  str, std::vector<std::string>& cmd,const char* seq )
 {
@@ -59,32 +60,28 @@ void onProcessMsg(std::vector<std::string>& msg){
         cout << str << endl;
     }
 
-
-
     int len = 0;
-    string control = msg.at(0);
+    string cmd = msg.at(0);
 
-
-    if(control.compare("list") == 0){
+    if(cmd.compare("list") == 0){
         len = UART_Send(fd,"[list device1 device2 device3]",strlen("[list device1 device2 device3]"));
-    }else if(control.compare("start") == 0){
+    }else if(cmd.compare("start") == 0){
         status = STATUS_START;
         len = UART_Send(fd,"[start ok]",strlen("[start ok]"));
         if(msg.size() == 2){
             cout << "msg.at(1) = " << msg.at(1) << endl;
         }
-    }else if(control.compare("stop") == 0){
+    }else if(cmd.compare("stop") == 0){
         status = STATUS_STOP;
         len = UART_Send(fd,"[stop ok]",strlen("[stop ok]"));
         if(msg.size() == 2){
             cout << "msg.at(1) = " << msg.at(1) << endl;
         }
-    }else if(control.compare("exit") == 0){
+    }else if(cmd.compare("exit") == 0){
         status = STATUS_EXIT;
         len = UART_Send(fd,"[exit ok]",strlen("[exit ok]"));
     }
 }
-
 
 void onResult(std::vector<std::string>& msg){
 
@@ -99,33 +96,37 @@ void onResult(std::vector<std::string>& msg){
         cout << str << endl;
     }
 
-
-
     int len = 0;
-    string control = msg.at(0);
+    string cmd = msg.at(0);
 
-
-    if(control.compare("list") == 0){
+    if(cmd.compare("list") == 0){
         for(int i = 0; i < msg.size();i++){
             string str = msg.at(i);
             cout << str << endl;
         }
-    }else if(control.compare("start") == 0){
+    }else if(cmd.compare("start") == 0){
         status = STATUS_START;
 
         if(msg.size() == 2){
             cout << "msg.at(1) = " << msg.at(1) << endl;
         }
-    }else if(control.compare("stop") == 0){
+    }else if(cmd.compare("stop") == 0){
         status = STATUS_STOP;
 
         if(msg.size() == 2){
             cout << "msg.at(1) = " << msg.at(1) << endl;
         }
-    }else if(control.compare("exit") == 0){
+    }else if(cmd.compare("exit") == 0){
         status = STATUS_EXIT;
         if(msg.size() == 2){
             cout << "msg.at(1) = " << msg.at(1) << endl;
+        }
+    }else if(cmd.compare("heart") == 0){
+        cout << "heartCount = " << heartCount << endl;
+        heartCount++;
+        for(int i = 0; i < msg.size();i++){
+            string str = msg.at(i);
+            cout << str << endl;
         }
     }
 }
@@ -137,8 +138,8 @@ void* readUartThread(void * pArg){
     Log("readThread arg = %d\n",id);
 
     int len;
-
-   string str;
+    int i = 0;
+    string str;
 
     while (1) //循环读取数据
     {
@@ -172,6 +173,8 @@ startParse: len = UART_Recv(fd, readBUf,sizeof(readBUf));
                         vector<std::string> msg;
                         splitString(sub.c_str(),msg," ");
                         if(isServer){
+                            cout << "" << i << " msg :" << msg.at(0) << endl;
+                            i++;
                             onProcessMsg(msg);
                         }else{
                             onResult(msg);
@@ -199,6 +202,11 @@ startParse: len = UART_Recv(fd, readBUf,sizeof(readBUf));
             break;
         }
         sleep(1);
+        if(isServer){
+            cout << "heartCount = " << heartCount << endl;
+            heartCount++;
+            len = UART_Send(fd,"[heart device1 device2 device3]",strlen("[heart device1 device2 device3]"));
+        }
     }
 }
 
@@ -251,13 +259,14 @@ int main(int argc, char **argv)
         mutex.TryLock();
         len = UART_Send(fd,"{list}",strlen("{list}"));
         mutex.Unlock();
-        for(i = 0;i < 10;i++)
+        for(i = 0;i < 10000;i++)
         {
 
-            fgets(writeBuf,256,stdin);   //输入内容，最大不超过40字节，fgets能吸收回车符，这样pc收到的数据就能自动换行
+            fgets(writeBuf,256,stdin);   //输入内容，最大不超过256字节，fgets能吸收回车符，这样pc收到的数据就能自动换行
             mutex.TryLock();
 
-            len = UART_Send(fd,writeBuf,40);
+            len = UART_Send(fd,writeBuf,strlen(writeBuf));
+            //len = UART_Send(fd,"{list device1 device2 device3}",strlen("{list device1 device2 device3}"));
             if(len > 0)
                 printf(" %d time send %d data successful\n",i,len);
             else
